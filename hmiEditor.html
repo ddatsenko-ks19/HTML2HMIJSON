@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Convertor</title>
+    <title>HMI-Convertor</title>
 <!--  <link rel="stylesheet" href="style.css"> -->
     <style>
       * {
@@ -29,7 +29,7 @@
         border-radius: 4px;
         box-sizing: border-box;
         background-color: #2344A3;
-
+        font-size:18px;
         transition: 0.2s ease;
       }
 
@@ -68,24 +68,22 @@
 
         height: 300px;
         padding: 10px;
-      }
 
-      .convertor__file-name {
-        text-align: center;
+        overflow-y: auto;
       }
 
       .convertor__control {
         display: grid;
         grid-gap: 10px;
         grid-area: control;
-
+ 
         height: 240px;
         padding: 10px;
       }
 
       .convertor__select {
         padding: 10px 14px;
-
+        font-size:18px;
         outline: none;
         border-radius: 4px;
       }
@@ -93,13 +91,40 @@
       .convertor__model-structure {
         grid-area: structure;
         padding: 10px 0 10px 10px; 
-
+        font-size:16px;
         overflow-y: auto;
         white-space: break-spaces;
       }
 
       .convertor > div {
         border: 1px solid black;
+      }
+
+      .statistic__file-name {
+        margin-bottom: 5px;
+        text-align: center;
+      }
+
+      .statistic__dividing-line {
+        width: 100%;
+        margin: 10px 0;
+        border: none;
+        border-top: 2px dashed black;
+      }
+      #general-statistic{
+      text-align: center;      
+      font-weight: bold;
+      font-size:18px;
+      color: firebrick;        
+      }
+      #window-widgets{
+      font-size:18px;
+      color: darkred;       
+      }
+      #window-statistic     
+      {font-weight: bold; 
+       font-size:18px;
+       color: crimson;        
       }
     </style>  
 </head>
@@ -108,12 +133,18 @@
     <div class="convertor__hmi-viewer">
       <iframe class="convertor__iframe" id="ShowHMI" scrolling="no"></iframe>
     </div>
-    <div class="convertor__statisitc" id="StatHMI">
-      <h3 class="convertor__file-name" id="LabledFileName" style="color:red">HMI-image dont download</h3>
+    <div class="convertor__statisitc statistic" id="StatHMI">
+      <h3 class="statistic__file-name" id="LabledFileName" style="color:red">HMI-image dont download</h3>
+      <div>
+        <p id="general-statistic"></p>
+        <hr id="statistic-dividing-line" class="statistic__dividing-line" style="display: none;">
+        <p id="window-statistic"></p>
+        <div id="window-widgets"></div>
+      </div>
     </div>
     <div class="convertor__control">
       <select id="SelWinHMI" class="convertor__select">
-        <option value="none">Нема вікнон</option>
+        <option value="none">Нема вікон</option>
       </select>
       <button 
         class="button"
@@ -127,14 +158,34 @@
   </div>
   
   <script>
+    const WidgetTypes = {
+      p: 'Label',
+      button: 'Button',
+      var: 'Var',
+      output: 'Output',
+      progress: 'Progress',
+      picture: 'Picture',
+      input: 'Input',
+      select: 'Select',
+      area: 'Indicator',
+      div: 'Panel',
+    };
+
     const iframe = document.getElementById('ShowHMI');
     const winHMISelect = document.getElementById('SelWinHMI');
     const hmiStructure = document.getElementById('HMIStructure');
     const ptrLabledFileName = document.getElementById('LabledFileName');
 
+    //statistic block
+    const generalStatistic = document.getElementById('general-statistic');
+    const windowStatistic = document.getElementById('window-statistic');
+    const windowWidgetsBlock = document.getElementById('window-widgets');
+    const statisticDividingLine = document.getElementById('statistic-dividing-line');
+
     let hmiJSON;
+    let hmiSections;
     let ActFileName;
-    let isFirstIframeLoaded = true;
+    let isIframeSelected = false;
 
     function HTMLtoJSON(iframeDocument) {
       const parseMetaTagsToObj = () => {
@@ -208,12 +259,15 @@
 
       input.onchange = () => {
         const file = input.files[0];
+
         if (file.type === 'text/html') {
           ActFileName = file.name;
           ptrLabledFileName.innerText = ActFileName; //pathResource;
           ptrLabledFileName.style.color = "green";
           
           iframe.src = URL.createObjectURL(file);
+
+          isIframeSelected = true;
         }
       };
 
@@ -235,24 +289,74 @@
       }
     }
 
-    iframe.onload = function() {
-      if (!isFirstIframeLoaded) {
-        hmiJSON = HTMLtoJSON(iframe.contentWindow.document);
-        const fragment = document.createDocumentFragment();
+    function setStatisticByWindow(windowData) {
+      windowStatistic.textContent = `${windowData.WinName} – ${windowData.CntWiget} об'єктів:`;
 
-        winHMISelect.innerHTML = "";
-
-        hmiJSON['HMI-image']['Windows'].forEach((win, index) => {
-          fragment.appendChild(new Option(win.WinName, win.WinName, false, index === 0));
-        });
-
-        winHMISelect.appendChild(fragment);
-
-        hmiStructure.innerText = JSON.stringify(hmiJSON, null, 4); 
-      }
-      
-      isFirstIframeLoaded = false;
+      const fragment = document.createDocumentFragment();
+      windowData.Wigets.forEach(widget => {
+        const p = document.createElement('p');
+        p.textContent = `${widget.id} (${WidgetTypes[widget.type]});`
+        fragment.appendChild(p);
+      });
+      windowWidgetsBlock.innerHTML = '';
+      windowWidgetsBlock.appendChild(fragment);
     }
+
+    function setStatistic() {
+      const setGeneralStatistic = (data) => {
+        const windowsCount = data.CntWin;
+        const widgetsCount = data.Windows.reduce((accum, curr) => accum + curr.CntWiget, 0);
+        generalStatistic.textContent = `${windowsCount} – вікон; ${widgetsCount} – об'єктів`;
+      }
+
+      const hmiData = hmiJSON['HMI-image'];
+      statisticDividingLine.style.display = 'block';
+      
+      setGeneralStatistic(hmiData);
+      setStatisticByWindow(hmiData.Windows[0]);
+    }
+
+    function setSelectData() {
+      const fragment = document.createDocumentFragment();
+
+      winHMISelect.innerHTML = "";
+
+      hmiJSON['HMI-image']['Windows'].forEach((win, index) => {
+        fragment.appendChild(new Option(win.WinName, win.WinName, false, index === 0));
+      });
+
+      winHMISelect.appendChild(fragment);
+    }
+
+    function setHmiStructureData() {
+      hmiStructure.innerText = JSON.stringify(hmiJSON, null, 4);
+    }
+
+    iframe.onload = function() {
+      if (isIframeSelected) {
+        hmiJSON = HTMLtoJSON(iframe.contentWindow.document);
+        hmiSections = iframe.contentWindow.document.querySelectorAll('section') || [];
+
+        setStatistic();
+        setSelectData();
+        setHmiStructureData();
+      }
+    }
+
+    winHMISelect.addEventListener('change', event => {
+      const selectValue = event.target.value;
+
+      hmiSections.forEach(section => {
+        section.style.display = section.id === selectValue ? 'block' : 'none';
+      });
+
+      let selectedWindow = hmiJSON['HMI-image'].Windows.find(window => window.WinName === selectValue);
+      if (selectedWindow) {
+        setStatisticByWindow(selectedWindow);
+      } else {
+        alert('Даного вікна не існує');
+      }
+    })
   </script>     
  </body>
 </html>
