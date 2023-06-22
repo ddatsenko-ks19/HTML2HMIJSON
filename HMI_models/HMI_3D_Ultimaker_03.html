@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width: device-width">
+  <meta name="author" content="Author name"/>
+  <meta name="application-name" content="3D-Printer v3.12 16.04.2023"/>
+  <meta name="description" content="HMI 3D прінтера, апратна платформа ESP32Wroom-32UE;"/>
+  <title>3D_Printer</title>
+  <style>
+  html {
+  background-color:white;
+  padding: 0;} 
+  body
+  {height: 640px;
+   width: 400px;
+   background:#21610B; 
+   margin: 0 auto;
+   position: relative; 
+  }
+  div,p,button,input, output,progress,picture,area {
+    position: absolute;
+    text-align:center;
+  }
+</style>  
+</head>
+<body>
+  <section id="win00">
+    <p id="LableNameDevice" style="
+    left:14px; top:0px;
+    width:380px; height:26px;
+    font-size:22px;
+    color:#F7F8E0; background:#21610B;"
+    title="NameDevice" value="LableNameDevice">
+    3D-прінтер FDM-200-200-100-Ultimaker
+    </p>
+    <button id="BtnТableСlbt" style="
+    left:20px; top:60px;
+    width:360px; height:50px;
+    font-size:32px; font-weight:bold;
+    color:#08088A; background:#F5EFFB;
+    border-color:#FFFFFF"
+    title="ТableСalibration" value="KeyТableСalibration"
+    >
+    Калібровка стола
+    </button>
+    <button id="BtnТableСlbt" style="
+    left:20px; top:130px;
+    width:360px; height:50px;
+    font-size:32px;font-weight:bold;
+    color:#08088A; background:#F5EFFB;
+    border-color:#FFFFFF"
+    title="ТableСalibration" value="KeyТableСalibration">
+    Розмітка простору
+    </button>
+    <button id="BtnSelFilet" style="
+    left:20px; top:200px;
+    width:360px; height:50px;
+    font-size:32px; font-weight:bold;
+    color:#08088A; background:#F5EFFB;
+    border-color:#FFFFFF"
+    title="3D_Model" value="KeySelFile"
+    >
+    Вибір 3D-моделі
+    </button>  
+    <button id="BtnТableСlbt" style="
+    left:20px; top:270px;
+    width:360px; height:50px;
+    font-size:32px; font-weight:bold;
+    color:#08088A; background:#F5EFFB;
+    border-color:#FFFFFF"
+    title="PrintMode" value="KeyPrint"
+    >
+    Друк 3D-моделі
+    </button>
+    <button id="BtnSetTHeat" style="
+    left:20px; top:340px;
+    width:360px; height:50px;
+    font-size:32px; font-weight:bold;
+    color:#08088A; background:#F5EFFB;
+    border-color:#FFFFFF"
+    title="SetHeat" value="KeyBtnSetHeat"
+    >
+    Параметри нагріву
+    </button>
+    <button id="BtnSetMove" style="
+    left:20px; top:410px;
+    width:360px; height:50px;
+    font-size:32px; font-weight:bold;
+    color:#08088A; background:#F5EFFB;
+    border-color:#FFFFFF"
+    title="SetMove" value="KeySetMove"
+    >
+    Динамічні параметри 
+    </button>
+    <button id="BtnAboutDvc" style="
+    left:20px; top:500px;
+    width:360px; height:36px;
+    font-size:18px; font-weight:bold;
+    color:#08088A; background:#F5EFFB;
+    border-color:#FFFFFF"
+    title="AboutDevice" value="KeyAboutDvc"
+    >
+    Довідка про пристій
+    </button>   
+  </section>
+  
+  <!-- вікно встановлення параметрів нагріву екструдера та стола -->
+  <section id="win01" style="display:none">
+    <p id="LblExtruderHeat" style="
+    left:14px; top:0px;
+    width:360px; height:36px;
+    font-size:20px; font-weight:bold;
+    color:#FBEFF8; background:#21610B;"
+    title="ExtruderHeat" value="LblExtruderHeat"
+    >
+    - - - Температура екструдера - - -
+    </p>
+    <p id="Lbl_T_extrud" style="
+    left:14px; top:30px;
+    width:190px; height:40px;
+    font-size:32px; 
+    color:#FFFFFF; background:#21610B;"
+    title="T_extruder" value="Lbl_T_extrud"
+    >
+    Т_extruder =
+    </p>
+    <output id="Out_Т_extruder" style="
+    left:210px; top:62px;
+    width:70px;height:38px;
+    font-size:32px;font-weight: bold;
+    color:#08088A; background:#FBFBEF;
+    border-color:#D0FA58"
+    value="T_extruder" title="Out_Т_extruder"
+    > 
+    115
+    </output>
+    <p id="Lbl_T_exd_GD" style="
+    left:285px; top:30px;
+    width:30px; height:40px;
+    font-size:32px; 
+    color:#FFFFFF; background:#21610B;"
+    title="T_extruder" value="Lbl_T_extrud"
+    >
+    ℃
+    </p>    
+    <p id="Lbl_SetMinT_e" style="
+    left:14px; top:88px;
+    width:190px; height:40px;
+    font-size:32px; 
+    color:#FFFFFF; background:#21610B;"
+    title="T_extruder" value="Lbl_SetMinT_e"
+    >
+    min_Т_e   =
+    </p>
+    <input type="text" id="In_SetТ_e" style="
+    left:210px; top:120px;
+    width:60px;height:38px;
+    font-size:32px;font-weight: bold;
+    color:#0000FF; background:#CEECF5;
+    border-color:#D0FA58"
+    value="220" title="In_SetТ_e"
+    /> 
+    <p id="Lbl_T_exd_GD" style="
+    left:285px; top:88px;
+    width:30px; height:40px;
+    font-size:32px; 
+    color:#FFFFFF; background:#21610B;"
+    title="T_extruder" value="Lbl_T_extrud"
+    >
+    ℃
+    </p>
+    <p id="Lbl_SetMinT_e" style="
+    left:14px; top:146px;
+    width:190px; height:40px;
+    font-size:32px; 
+    color:#FFFFFF; background:#21610B;"
+    title="T_extruder" value="Lbl_SetMinT_e"
+    >
+    max_Т_e   =
+    </p>
+    <input type="text" id="In_SetТ_e" style="
+    left:210px; top:178px;
+    width:60px;height:38px;
+    font-size:32px;font-weight: bold;
+    color:#FF0080; background:#F2F5A9;
+    border-color:#D0FA58"
+    value="248" title="In_SetТ_e"
+    /> 
+    <p id="Lbl_T_exd_GD" style="
+    left:285px; top:146px;
+    width:30px; height:40px;
+    font-size:32px; 
+    color:#FFFFFF; background:#21610B;"
+    title="T_extruder" value="Lbl_T_extrud"
+    >
+    ℃
+    </p>
+    <button id="Auto_T_e" style="
+    left:20px; top:228px;
+    width:150px;height:32px;
+    font-size:24px; color:#08088A; background:#F5EFFB;                                 
+    border-color:#D8D8D8"
+    title="Auto_T_e" value="Auto_T_e"
+    >
+    Автомат
+    </button>
+    
+    <p id="LblExtruderHeat" style="
+    left:14px; top:270px;
+    width:360px; height:36px;
+    font-size:20px; font-weight:bold;
+    color:#FBEFF8; background:#21610B;"
+    title="ExtruderHeat" value="LblExtruderHeat"
+    >
+    - - - Температура стола - - -
+    </p>
+    <p id="Lbl_T_wtable" style="
+    left:14px; top:300px;
+    width:190px; height:40px;
+    font-size:32px; 
+    color:#FFFFFF; background:#21610B;"
+    title="T_wtable" value="Lbl_T_wtable"
+    >
+    Т_w-table =
+    </p>
+    <output id="Out_T_WorkTable" style="
+    left:210px; top:332px;
+    width:70px;height:38px;
+    font-size:32px;font-weight: bold;
+    color:#08088A; background:#FBFBEF;
+    border-color:#D0FA58"
+    value="T_WorkTable" title="T_WorkTable"
+    > 
+    115
+    </output>
+    <p id="Lbl_T_exd_GD" style="
+    left:285px; top:300px;
+    width:30px; height:40px;
+    font-size:32px; 
+    color:#FFFFFF; background:#21610B;"
+    title="T_extruder" value="Lbl_T_extrud"
+    >
+    ℃
+    </p>    
+    <p id="Lbl_SetMinT_e" style="
+    left:14px; top:358px;
+    width:190px; height:40px;
+    font-size:32px; 
+    color:#FFFFFF; background:#21610B;"
+    title="T_extruder" value="Lbl_SetMinT_e"
+    >
+    min_Т_wt   =
+    </p>
+    <input type="text" id="In_SetТ_e" style="
+    left:210px; top:390px;
+    width:60px;height:38px;
+    font-size:32px;font-weight: bold;
+    color:#0000FF; background:#CEECF5;
+    border-color:#D0FA58"
+    value="95" title="In_SetТ_e"
+    /> 
+    <p id="Lbl_T_exd_GD" style="
+    left:285px; top:358px;
+    width:30px; height:40px;
+    font-size:32px; 
+    color:#FFFFFF; background:#21610B;"
+    title="T_extruder" value="Lbl_T_extrud"
+    >
+    ℃
+    </p>
+    <p id="Lbl_SetMinT_e" style="
+    left:14px; top:416px;
+    width:190px; height:40px;
+    font-size:32px; 
+    color:#FFFFFF; background:#21610B;"
+    title="T_extruder" value="Lbl_SetMinT_e"
+    >
+    max_Т_wt   =
+    </p>
+    <input type="text" id="In_SetТ_e" style="
+    left:210px; top:448px;
+    width:60px;height:38px;
+    font-size:32px;font-weight: bold;
+    color:#FF0080; background:#F2F5A9;
+    border-color:#D0FA58"
+    value="105" title="In_SetТ_e"
+    /> 
+    <p id="Lbl_T_exd_GD" style="
+    left:285px; top:416px;
+    width:30px; height:40px;
+    font-size:32px; 
+    color:#FFFFFF; background:#21610B;"
+    title="T_extruder" value="Lbl_T_extrud"
+    >
+    ℃
+    </p>
+    <button id="Auto_T_e" style="
+    left:20px; top:498px;
+    width:150px;height:32px;
+    font-size:24px; color:#08088A; background:#F5EFFB;                                 
+    border-color:#D8D8D8"
+    title="Auto_T_e" value="Auto_T_e"
+    >
+    Автомат
+    </button>    
+    
+  </section>
+  <!-- -->
+  <section id="win02"  style="display:none">
+	<p id="StatusLine" style="
+    left:15px; top:0px;
+    width:370px; height:30px;
+    font-size:24px;
+    color:#000000; background:#FDEADA"
+    value="StatusLine" title="StatusLine"
+    > 
+    StatusLine
+    </p>
+	<p id="ActiveAxisLabel" style="
+    left:25px; top:30px;
+    width:350px; height:35px;
+    font-size:32px; 
+    color:#FFFFFF; background:#21610B;"
+    title="X" value="ActiveAxisXLabel"
+    >
+    X999.99 Y999.99 Z999.99
+	</p>
+	<button id="Zero" style="
+    left:15px; top:100px;
+    width:60px;height:60px;
+    font-size:48px; color:#08088A; background:#F5EFFB;                                 
+    border-color:#D8D8D8"
+    title="Zero" value="Zero"
+    >
+    '0'
+	</button>   
+	<button id="E" style="
+    left:85px; top:100px;
+    width:60px;height:60px;
+    font-size:48px; color:#08088A; background:#F5EFFB;                                 
+    border-color:#D8D8D8"
+    title="E" value="E"
+    >
+    E
+	</button>
+	<button id="ABS" style="
+    left:155px; top:100px;
+    width:110px;height:60px;
+    font-size:48px; color:#08088A; background:#F5EFFB;                                 
+    border-color:#D8D8D8"
+    title="ABS" value="ABS"
+    >
+    ABS
+	</button>   
+	<button id="SET" style="
+    left:275px; top:100px;
+    width:110px;height:60px;
+    font-size:48px; color:#08088A; background:#F5EFFB;                                 
+    border-color:#D8D8D8"
+    title="SET" value="SET"
+    >
+    SET
+	</button>  
+	<button id="X_Button" style="
+    left:15px; top:175px;
+    width:60px;height:60px;
+    font-size:48px; color:#08088A; background:#F5EFFB;                                 
+    border-color:#D8D8D8"
+    title="X_Button" value="X_Button"
+    >
+    X
+	</button>  
+	<p id="X_Value_Label" style="
+    left:85px; top:127px;
+    width:180px;height:60px;
+    font-size:48px;font-weight: bold;
+    color:#08088A; background:#FBFBEF;
+    border-color:#D0FA58"
+    value="X_Value_Label" title="X_Value_Label"
+    > 
+    999,99
+    </p>
+	<button id="Y_Button" style="
+    left:15px; top:250px;
+    width:60px;height:60px;
+    font-size:48px; color:#08088A; background:#F5EFFB;                                 
+    border-color:#D8D8D8"
+    title="Y_Button" value="Y_Button"
+    >
+    Y
+	</button>  
+	<p id="Y_Value_Label" style="
+    left:85px; top:200px;
+    width:180px;height:60px;
+    font-size:48px;font-weight: bold;
+    color:#08088A; background:#FBFBEF;
+    border-color:#D0FA58"
+    value="Y_Value_Label" title="Y_Value_Label"
+    > 
+    999,99
+    </p>
+	<button id="Z_Button" style="
+    left:15px; top:325px;
+    width:60px;height:60px;
+    font-size:48px; color:#08088A; background:#F5EFFB;                                 
+    border-color:#D8D8D8"
+    title="Y_Button" value="Y_Button"
+    >
+    Z
+	</button>  
+	<p id="Z_Value_Label" style="
+    left:85px; top:277px;
+    width:180px;height:60px;
+    font-size:48px;font-weight: bold;
+    color:#08088A; background:#FBFBEF;
+    border-color:#D0FA58"
+    value="Z_Value_Label" title="Z_Value_Label"
+    > 
+    999,99
+    </p>
+	<button id="Plus_Button" style="
+    left:275px; top:175px;
+    width:110px;height:100px;
+    font-size:48px; color:#08088A; background:#F5EFFB;                                 
+    border-color:#D8D8D8"
+    title="Plus_Button" value="Plus_Button"
+    >
+    +
+	</button> 
+	<button id="Minus_Button" style="
+    left:275px; top:285px;
+    width:110px;height:100px;
+    font-size:48px; color:#08088A; background:#F5EFFB;                                 
+    border-color:#D8D8D8"
+    title="Minus_Button" value="Minus_Button"
+    >
+    -
+	</button>
+	<p id="F_Label" style="
+    left:15px; top:350px;
+    width:60px;height:60px;
+    font-size:48px;font-weight: bold;
+    color:#000000; background:#FDEADA"
+    value="F_Label" title="F_Label"
+    > 
+    F
+    </p>
+	<input type="range" id="F_Input" style="
+	left:85px; top:398px;
+    width:295px;height:60px"
+	</input>
+	<p id="S_Label" style="
+    left:15px; top:420px;
+    width:60px;height:60px;
+    font-size:48px;font-weight: bold;
+    color:#000000; background:#FDEADA"
+    value="S_Label" title="S_Label"
+    > 
+    S
+    </p>
+	<input type="range" id="S_Input" style="
+	left:85px; top:468px;
+    width:295px;height:60px"
+	</input>
+  </section>
+</body>
+</html> 
